@@ -1,70 +1,160 @@
-# Getting Started with Create React App
+# REACT with Json Placeholder API
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+```js
+import React, { useState, useEffect } from 'react'
 
-## Available Scripts
+const apiEndPoint = "https://jsonplaceholder.typicode.com/photos";
 
-In the project directory, you can run:
+const ImageLimit = () => {
 
-### `npm start`
+    //image bucket & album id bucket (main)
+    const [images, setImages] = useState([]);
+    const [albumIds, setAlbumIds] = useState([]);
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+    //filters
+    const [imgId, setImgId] = useState('');
+    const [limit, setLimit] = useState(10);
+    const [albumId, setAlbumId] = useState(1);
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+    //another api call
+    const findImageById = () => {
+        fetch(`${apiEndPoint}/${imgId}`).then((response) => {
+            return response.json();
+        }).then((data) => {
+            if (data && Object.keys(data).length > 0) {
+                setImages([data]);
+            } else {
+                setImages([]);
+            }
+            console.log(data);
+        })
+    }
 
-### `npm test`
+    //here is the main thing, where apply all filters (ablum id & limit)
+    //and final image bucket is ready for display
+    const allImages = () => {
+        fetch(apiEndPoint).then((response) => {
+            return response.json();
+        }).then((data) => {
+            if (data.length > 0) {
+                let filterByAlbumId = [];
+                let imageBoxLimit = [];
+                filterByAlbumId = data.filter((item) => {
+                    if (item.albumId == albumId) {
+                        return item;
+                    }
+                })
+                if (filterByAlbumId.length > 0) {
+                    filterByAlbumId.map((item, index) => {
+                        if (index < limit) {
+                            imageBoxLimit.push(item);
+                        }
+                    })
+                }
+                setImages(imageBoxLimit);
+            } else {
+                setImages([]);
+            }
+            console.log(data);
+        });
+    }
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+    //same api endpoint call but here only collect the album ids
+    const allAlbumIds = () => {
+        fetch(apiEndPoint).then((response) => {
+            return response.json();
+        }).then((data) => {
+            if (data.length > 0) {
+                let collectIds = [];
+                data.map((item) => {
+                    collectIds.push(item.albumId);
+                })
+                if (collectIds.length > 0) {
+                    let uniqueItems = [...new Set(collectIds)];
+                    setAlbumIds(uniqueItems);
+                } else {
+                    setAlbumIds([]);
+                }
+            } else {
+                setAlbumIds([]);
+            }
+        });
+    }
 
-### `npm run build`
+    const resetAll = () => {
+        setImgId('');
+        setLimit(10);
+        setAlbumId(1);
+    }
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    //this useEffect is call on page load & once any of these 2 dependency params value changes 
+    useEffect(() => {
+        allImages();
+    }, [albumId, limit])
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+    //this useEffect is call only 1 time - page load
+    useEffect(() => {
+        allAlbumIds();
+    }, [])
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+  return (
+    <>
+    .......
+    ........
+```
 
-### `npm run eject`
+## Few JSX Rendering
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```js
+<div className='card-body'>
+    <div className='row'>
+    {
+        images.length > 0 ? 
+        images.map((item, index) => {
+            return (
+                <div className='col-md-4 mt-2' key={index}>
+                    <div className='card'>
+                        <div className='card-header'>
+                            <strong>ID: {item.id}</strong> | 
+                            &nbsp;<strong>Album: {item.albumId}</strong>
+                        </div>
+                        <div className='card-body'>
+                            <img src={item.thumbnailUrl} title={item.title} alt={item.title} className='img-thumbnail' />
+                        </div>
+                    </div>
+                </div>
+            )
+        }) : <div className='alert alert-danger'>
+                <strong>No Photo Found!</strong>
+            </div>
+    }
+    </div>
+</div>
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```js
+<div className='card-body'>
+    <div className='row'>
+    {
+        images.length > 0 ? 
+        images.map((item, index) => {
+            return (
+                index < limit &&
+                <div className='col-md-4 mt-2' key={index}>
+                    <div className='card'>
+                        <div className='card-header'>
+                            <strong>ID: {item.id}</strong>
+                        </div>
+                        <div className='card-body'>
+                            <img src={item.thumbnailUrl} title={item.title} alt={item.title} className='img-thumbnail' />
+                        </div>
+                    </div>
+                </div>
+            )
+        }) : <div className='alert alert-danger'>
+                <strong>No Photo Found!</strong>
+            </div>
+    }
+    </div>
+</div>
+```
